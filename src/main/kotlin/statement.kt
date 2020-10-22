@@ -35,11 +35,11 @@ fun statement(invoice: Map<String, *>, plays: Map<String, *>): String {
         // 喜劇のときは10人に付き、さらにポイントを加算
         if ("comedy" == play["type"]) volumeCredits += floor(perf["audience"] as Float) / 5
         // 注文の内訳を出力
-        result += " %s: %s (%s seats)\n".format(play["name"], formatUsd(thisAmount) / 100, perf["audience"])
+        result += " %s: %s (%s seats)\n".format(play["name"], formatUsd(thisAmount / 100), perf["audience"])
         totalAmount += thisAmount
     }
 
-    result += "Amount owed is %s\n".format(formatUsd(totalAmount) / 100)
+    result += "Amount owed is %s\n".format(formatUsd(totalAmount / 100))
     result += "You earned %d %s\n".format(volumeCredits)
     return result
 }
