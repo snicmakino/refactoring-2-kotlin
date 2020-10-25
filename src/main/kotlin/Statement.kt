@@ -7,7 +7,8 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     var volumeCredits = 0.0
     var result = "Statement for %s\n".format(invoice.customer)
 
-
+    val formatUsd = { amount: Int -> "\$%.2f".format(amount.toFloat()) }
+    
     for (perf in invoice.performances) {
         val play = plays[perf.playId] ?: error("playId not found")
         var thisAmount: Int
@@ -44,8 +45,4 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     result += "Amount owed is %s\n".format(formatUsd(totalAmount / 100))
     result += "You earned %.0f credits\n".format(volumeCredits)
     return result
-}
-
-fun formatUsd(amount: Int): String {
-    return "\$%.2f".format(amount.toFloat())
 }
