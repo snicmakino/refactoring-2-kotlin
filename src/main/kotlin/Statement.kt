@@ -1,4 +1,5 @@
 import json.Invoice
+import json.Performance
 import json.Play
 import kotlin.math.floor
 
@@ -8,30 +9,10 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     var result = "Statement for %s\n".format(invoice.customer)
 
     val formatUsd = { amount: Int -> "\$%.2f".format(amount.toFloat()) }
-    
+
     for (perf in invoice.performances) {
         val play = plays[perf.playId] ?: error("playId not found")
-        var thisAmount: Int
-
-
-        when (play.type) {
-            "tragedy" -> {
-                thisAmount = 40000
-                if (perf.audience > 30) {
-                    thisAmount += 1000 * (perf.audience - 30)
-                }
-            }
-            "comedy" -> {
-                thisAmount = 30000
-                if (perf.audience > 20) {
-                    thisAmount += 10000 + 500 * (perf.audience - 20)
-                }
-                thisAmount += 300 * perf.audience
-            }
-            else -> {
-                throw Exception("unknown type: %s".format(play.type))
-            }
-        }
+        val thisAmount = amountFor(perf, play)
 
         // ボリューム特典のポイントを加算
         volumeCredits += listOf(perf.audience - 30, 0).maxOrNull() ?: 0
@@ -44,5 +25,28 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
 
     result += "Amount owed is %s\n".format(formatUsd(totalAmount / 100))
     result += "You earned %.0f credits\n".format(volumeCredits)
+    return result
+}
+
+fun amountFor(aPerformance: Performance, play: Play): Int {
+    var result: Int
+    when (play.type) {
+        "tragedy" -> {
+            result = 40000
+            if (aPerformance.audience > 30) {
+                result += 1000 * (aPerformance.audience - 30)
+            }
+        }
+        "comedy" -> {
+            result = 30000
+            if (aPerformance.audience > 20) {
+                result += 10000 + 500 * (aPerformance.audience - 20)
+            }
+            result += 300 * aPerformance.audience
+        }
+        else -> {
+            throw Exception("unknown type: %s".format(play.type))
+        }
+    }
     return result
 }
