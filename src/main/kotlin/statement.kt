@@ -1,41 +1,43 @@
+import json.Invoice
+import json.Play
 import kotlin.math.floor
 
-fun statement(invoice: Map<String, *>, plays: Map<String, *>): String {
+fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     var totalAmount = 0
     var volumeCredits = 0f
-    var result = "Statement for %s\n".format(invoice["customer"])
-
-//    val format =
-    for (perf in invoice["performances"] as List<Map<String, *>>) {
-        val play = plays[perf["playId"]] as Map<String, *>
-        var thisAmount = 0
+    var result = "Statement for %s\n".format(invoice.customer)
 
 
-        when (play["type"]) {
+    for (perf in invoice.performances) {
+        val play = plays[perf.playId] ?: error("playId not found")
+        var thisAmount: Int
+
+
+        when (play.type) {
             "tragedy" -> {
                 thisAmount = 40000
-                if (perf["audience"] as Int > 30) {
-                    thisAmount += 1000 * (perf["audience"] as Int - 30)
+                if (perf.audience > 30) {
+                    thisAmount += 1000 * (perf.audience - 30)
                 }
             }
             "comedy" -> {
                 thisAmount = 30000
-                if (perf["audience"] as Int > 20) {
-                    thisAmount += 10000 + 500 * (perf["audience"] as Int - 20)
+                if (perf.audience > 20) {
+                    thisAmount += 10000 + 500 * (perf.audience - 20)
                 }
-                thisAmount += 300 * perf["audience"] as Int
+                thisAmount += 300 * perf.audience
             }
             else -> {
-                throw Exception("unknown type: %s".format(play["type"]))
+                throw Exception("unknown type: %s".format(play.type))
             }
         }
 
         // ボリューム特典のポイントを加算
-        volumeCredits += listOf(perf["audience"] as Int - 30, 0).maxOrNull() ?: 0
+        volumeCredits += listOf(perf.audience - 30, 0).maxOrNull() ?: 0
         // 喜劇のときは10人に付き、さらにポイントを加算
-        if ("comedy" == play["type"]) volumeCredits += floor(perf["audience"] as Float) / 5
+        if ("comedy" == play.type) volumeCredits += floor(perf.audience.toFloat()) / 5
         // 注文の内訳を出力
-        result += " %s: %s (%s seats)\n".format(play["name"], formatUsd(thisAmount / 100), perf["audience"])
+        result += " %s: %s (%s seats)\n".format(play.name, formatUsd(thisAmount / 100), perf.audience)
         totalAmount += thisAmount
     }
 
