@@ -4,7 +4,7 @@ import kotlin.math.floor
 
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     var totalAmount = 0
-    var volumeCredits = 0f
+    var volumeCredits = 0.0
     var result = "Statement for %s\n".format(invoice.customer)
 
 
@@ -35,17 +35,17 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
         // ボリューム特典のポイントを加算
         volumeCredits += listOf(perf.audience - 30, 0).maxOrNull() ?: 0
         // 喜劇のときは10人に付き、さらにポイントを加算
-        if ("comedy" == play.type) volumeCredits += floor(perf.audience.toFloat()) / 5
+        if ("comedy" == play.type) volumeCredits += floor(perf.audience.toDouble()) / 5
         // 注文の内訳を出力
         result += " %s: %s (%s seats)\n".format(play.name, formatUsd(thisAmount / 100), perf.audience)
         totalAmount += thisAmount
     }
 
     result += "Amount owed is %s\n".format(formatUsd(totalAmount / 100))
-    result += "You earned %d %s\n".format(volumeCredits)
+    result += "You earned %.0f credits\n".format(volumeCredits)
     return result
 }
 
 fun formatUsd(amount: Int): String {
-    return "\$%9.2f".format(amount.toFloat())
+    return "\$%.2f".format(amount.toFloat())
 }

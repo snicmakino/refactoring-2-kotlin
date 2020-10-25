@@ -10,8 +10,13 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    testImplementation(kotlin("test-junit5"))
+    testImplementation("io.kotest:kotest-runner-junit5:4.3.0") // for kotest framework
+    testImplementation("io.kotest:kotest-assertions-core:4.3.0") // for kotest core jvm assertions
+    testImplementation("io.kotest:kotest-property:4.3.0") // for kotest property test
 }
 tasks.withType<KotlinCompile>() {
     kotlinOptions.jvmTarget = "13"
+}
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
