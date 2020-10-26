@@ -41,18 +41,21 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
         return result
     }
 
+    fun totalVolumeCredits(): Double {
+        var volumeCredits = 0.0
+        for (perf in invoice.performances) {
+            volumeCredits += volumeCreditsFor(perf)
+        }
+        return volumeCredits
+    }
+
     for (perf in invoice.performances) {
         // 注文の内訳を出力
         result += " %s: %s (%s seats)\n".format(playFor(perf).name, usd(amountFor(perf) / 100), perf.audience)
         totalAmount += amountFor(perf)
     }
-    var volumeCredits = 0.0
-    for (perf in invoice.performances) {
-        volumeCredits += volumeCreditsFor(perf)
-    }
-
     result += "Amount owed is %s\n".format(usd(totalAmount / 100))
-    result += "You earned %.0f credits\n".format(volumeCredits)
+    result += "You earned %.0f credits\n".format(totalVolumeCredits())
     return result
 }
 
