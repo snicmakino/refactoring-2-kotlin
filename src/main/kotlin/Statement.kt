@@ -13,15 +13,14 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     val playFor: (Performance) -> Play = { plays[it.playId] ?: error("playId not found") }
 
     for (perf in invoice.performances) {
-        val play = playFor(perf)
-        val thisAmount = amountFor(perf, play)
+        val thisAmount = amountFor(perf, playFor(perf))
 
         // ボリューム特典のポイントを加算
         volumeCredits += listOf(perf.audience - 30, 0).maxOrNull() ?: 0
         // 喜劇のときは10人に付き、さらにポイントを加算
-        if ("comedy" == play.type) volumeCredits += floor(perf.audience.toDouble()) / 5
+        if ("comedy" == playFor(perf).type) volumeCredits += floor(perf.audience.toDouble()) / 5
         // 注文の内訳を出力
-        result += " %s: %s (%s seats)\n".format(play.name, formatUsd(thisAmount / 100), perf.audience)
+        result += " %s: %s (%s seats)\n".format(playFor(perf).name, formatUsd(thisAmount / 100), perf.audience)
         totalAmount += thisAmount
     }
 
