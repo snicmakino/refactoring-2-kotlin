@@ -3,15 +3,17 @@ import json.Performance
 import json.Play
 import kotlin.math.floor
 
+
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     var totalAmount = 0
     var volumeCredits = 0.0
     var result = "Statement for %s\n".format(invoice.customer)
 
-    val formatUsd = { amount: Int -> "\$%.2f".format(amount.toFloat()) }
+    val formatUsd: (Int) -> String = { "\$%.2f".format(it.toFloat()) }
+    val playFor: (Performance) -> Play = { plays[it.playId] ?: error("playId not found") }
 
     for (perf in invoice.performances) {
-        val play = plays[perf.playId] ?: error("playId not found")
+        val play = playFor(perf)
         val thisAmount = amountFor(perf, play)
 
         // ボリューム特典のポイントを加算
