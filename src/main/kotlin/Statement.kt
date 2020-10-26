@@ -6,7 +6,6 @@ import kotlin.math.floor
 
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     var totalAmount = 0
-    var volumeCredits = 0.0
     var result = "Statement for %s\n".format(invoice.customer)
 
     val usd: (Int) -> String = { "\$%.2f".format(it.toFloat()) }
@@ -35,7 +34,7 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
         return result
     }
 
-    fun volumeCredits(aPerformance: Performance): Double {
+    fun volumeCreditsFor(aPerformance: Performance): Double {
         var result = 0.0
         result += listOf(aPerformance.audience - 30, 0).maxOrNull() ?: 0
         if ("comedy" == playFor(aPerformance).type) result += floor(aPerformance.audience.toDouble()) / 5
@@ -43,10 +42,13 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     }
 
     for (perf in invoice.performances) {
-        volumeCredits += volumeCredits(perf)
         // 注文の内訳を出力
         result += " %s: %s (%s seats)\n".format(playFor(perf).name, usd(amountFor(perf) / 100), perf.audience)
         totalAmount += amountFor(perf)
+    }
+    var volumeCredits = 0.0
+    for (perf in invoice.performances) {
+        volumeCredits += volumeCreditsFor(perf)
     }
 
     result += "Amount owed is %s\n".format(usd(totalAmount / 100))
