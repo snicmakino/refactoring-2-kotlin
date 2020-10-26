@@ -5,7 +5,6 @@ import kotlin.math.floor
 
 
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
-    var totalAmount = 0
     var result = "Statement for %s\n".format(invoice.customer)
 
     val usd: (Int) -> String = { "\$%.2f".format(it.toFloat()) }
@@ -49,12 +48,21 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
         return volumeCredits
     }
 
+    fun totalAmount(): Int {
+        var totalAmount = 0
+        for (perf in invoice.performances) {
+            // 注文の内訳を出力
+            totalAmount += amountFor(perf)
+        }
+        return totalAmount
+    }
+
     for (perf in invoice.performances) {
         // 注文の内訳を出力
         result += " %s: %s (%s seats)\n".format(playFor(perf).name, usd(amountFor(perf) / 100), perf.audience)
-        totalAmount += amountFor(perf)
     }
-    result += "Amount owed is %s\n".format(usd(totalAmount / 100))
+
+    result += "Amount owed is %s\n".format(usd(totalAmount() / 100))
     result += "You earned %.0f credits\n".format(totalVolumeCredits())
     return result
 }
