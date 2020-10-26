@@ -12,8 +12,31 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     val formatUsd: (Int) -> String = { "\$%.2f".format(it.toFloat()) }
     val playFor: (Performance) -> Play = { plays[it.playId] ?: error("playId not found") }
 
+    fun amountFor(aPerformance: Performance): Int {
+        var result: Int
+        when (playFor(aPerformance).type) {
+            "tragedy" -> {
+                result = 40000
+                if (aPerformance.audience > 30) {
+                    result += 1000 * (aPerformance.audience - 30)
+                }
+            }
+            "comedy" -> {
+                result = 30000
+                if (aPerformance.audience > 20) {
+                    result += 10000 + 500 * (aPerformance.audience - 20)
+                }
+                result += 300 * aPerformance.audience
+            }
+            else -> {
+                throw Exception("unknown type: %s".format(playFor(aPerformance).type))
+            }
+        }
+        return result
+    }
+
     for (perf in invoice.performances) {
-        val thisAmount = amountFor(perf, playFor(perf))
+        val thisAmount = amountFor(perf)
 
         // ボリューム特典のポイントを加算
         volumeCredits += listOf(perf.audience - 30, 0).maxOrNull() ?: 0
@@ -29,25 +52,3 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     return result
 }
 
-fun amountFor(aPerformance: Performance, play: Play): Int {
-    var result: Int
-    when (play.type) {
-        "tragedy" -> {
-            result = 40000
-            if (aPerformance.audience > 30) {
-                result += 1000 * (aPerformance.audience - 30)
-            }
-        }
-        "comedy" -> {
-            result = 30000
-            if (aPerformance.audience > 20) {
-                result += 10000 + 500 * (aPerformance.audience - 20)
-            }
-            result += 300 * aPerformance.audience
-        }
-        else -> {
-            throw Exception("unknown type: %s".format(play.type))
-        }
-    }
-    return result
-}
