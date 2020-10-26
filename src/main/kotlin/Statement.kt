@@ -35,11 +35,15 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
         return result
     }
 
+    fun volumeCredits(aPerformance: Performance): Double {
+        var result = 0.0
+        result += listOf(aPerformance.audience - 30, 0).maxOrNull() ?: 0
+        if ("comedy" == playFor(aPerformance).type) result += floor(aPerformance.audience.toDouble()) / 5
+        return result
+    }
+
     for (perf in invoice.performances) {
-        // ボリューム特典のポイントを加算
-        volumeCredits += listOf(perf.audience - 30, 0).maxOrNull() ?: 0
-        // 喜劇のときは10人に付き、さらにポイントを加算
-        if ("comedy" == playFor(perf).type) volumeCredits += floor(perf.audience.toDouble()) / 5
+        volumeCredits += volumeCredits(perf)
         // 注文の内訳を出力
         result += " %s: %s (%s seats)\n".format(playFor(perf).name, formatUsd(amountFor(perf) / 100), perf.audience)
         totalAmount += amountFor(perf)
