@@ -5,8 +5,11 @@ import kotlin.math.floor
 
 
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
-    var result = "Statement for %s\n".format(invoice.customer)
+    return renderPlainText(invoice, plays)
+}
 
+fun renderPlainText(invoice: Invoice, plays: Map<String, Play>): String {
+    var result = "Statement for %s\n".format(invoice.customer)
     val usd: (Int) -> String = { "\$%.2f".format(it.toFloat()) }
     val playFor: (Performance) -> Play = { plays[it.playId] ?: error("playId not found") }
 
@@ -66,4 +69,3 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
     result += "You earned %.0f credits\n".format(totalVolumeCredits())
     return result
 }
-
