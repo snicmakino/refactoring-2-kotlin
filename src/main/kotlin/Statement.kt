@@ -5,11 +5,12 @@ import kotlin.math.floor
 
 
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
-    return renderPlainText(invoice, plays)
+    val statementData = StatementData(invoice.customer, invoice.performances)
+    return renderPlainText(statementData, plays)
 }
 
-fun renderPlainText(invoice: Invoice, plays: Map<String, Play>): String {
-    var result = "Statement for %s\n".format(invoice.customer)
+fun renderPlainText(data: StatementData, plays: Map<String, Play>): String {
+    var result = "Statement for %s\n".format(data.customer)
     val usd: (Int) -> String = { "\$%.2f".format(it.toFloat()) }
     val playFor: (Performance) -> Play = { plays[it.playId] ?: error("playId not found") }
 
@@ -45,7 +46,7 @@ fun renderPlainText(invoice: Invoice, plays: Map<String, Play>): String {
 
     fun totalVolumeCredits(): Double {
         var result = 0.0
-        for (perf in invoice.performances) {
+        for (perf in data.performances) {
             result += volumeCreditsFor(perf)
         }
         return result
@@ -53,14 +54,14 @@ fun renderPlainText(invoice: Invoice, plays: Map<String, Play>): String {
 
     fun totalAmount(): Int {
         var result = 0
-        for (perf in invoice.performances) {
+        for (perf in data.performances) {
             // 注文の内訳を出力
             result += amountFor(perf)
         }
         return result
     }
 
-    for (perf in invoice.performances) {
+    for (perf in data.performances) {
         // 注文の内訳を出力
         result += " %s: %s (%s seats)\n".format(playFor(perf).name, usd(amountFor(perf) / 100), perf.audience)
     }
@@ -69,3 +70,5 @@ fun renderPlainText(invoice: Invoice, plays: Map<String, Play>): String {
     result += "You earned %.0f credits\n".format(totalVolumeCredits())
     return result
 }
+
+class StatementData(val customer: String, val performances: List<Performance>)
