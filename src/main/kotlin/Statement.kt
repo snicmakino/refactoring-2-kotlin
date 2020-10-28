@@ -5,18 +5,17 @@ import kotlin.math.floor
 
 
 fun statement(invoice: Invoice, plays: Map<String, Play>): String {
-    val statementData = StatementData(invoice.customer, invoice.performances)
-    return renderPlainText(statementData, plays)
+    val statementData = StatementData(invoice.customer, invoice.performances, plays)
+    return renderPlainText(statementData)
 }
 
-fun renderPlainText(data: StatementData, plays: Map<String, Play>): String {
+fun renderPlainText(data: StatementData): String {
     var result = "Statement for %s\n".format(data.customer)
     val usd: (Int) -> String = { "\$%.2f".format(it.toFloat()) }
-    val playFor: (Performance) -> Play = { plays[it.playId] ?: error("playId not found") }
 
-    fun amountFor(aPerformance: Performance): Int {
+    fun amountFor(aPerformance: StatementData.StatementPerformance): Int {
         var result: Int
-        when (playFor(aPerformance).type) {
+        when (aPerformance.play.type) {
             "tragedy" -> {
                 result = 40000
                 if (aPerformance.audience > 30) {
@@ -31,16 +30,16 @@ fun renderPlainText(data: StatementData, plays: Map<String, Play>): String {
                 result += 300 * aPerformance.audience
             }
             else -> {
-                throw Exception("unknown type: %s".format(playFor(aPerformance).type))
+                throw Exception("unknown type: %s".format(aPerformance.play.type))
             }
         }
         return result
     }
 
-    fun volumeCreditsFor(aPerformance: Performance): Double {
+    fun volumeCreditsFor(aPerformance: StatementData.StatementPerformance): Double {
         var result = 0.0
         result += listOf(aPerformance.audience - 30, 0).maxOrNull() ?: 0
-        if ("comedy" == playFor(aPerformance).type) result += floor(aPerformance.audience.toDouble()) / 5
+        if ("comedy" == aPerformance.play.type) result += floor(aPerformance.audience.toDouble()) / 5
         return result
     }
 
@@ -63,7 +62,7 @@ fun renderPlainText(data: StatementData, plays: Map<String, Play>): String {
 
     for (perf in data.performances) {
         // 注文の内訳を出力
-        result += " %s: %s (%s seats)\n".format(playFor(perf).name, usd(amountFor(perf) / 100), perf.audience)
+        result += " %s: %s (%s seats)\n".format(perf.play.name, usd(amountFor(perf) / 100), perf.audience)
     }
 
     result += "Amount owed is %s\n".format(usd(totalAmount() / 100))
@@ -71,4 +70,24 @@ fun renderPlainText(data: StatementData, plays: Map<String, Play>): String {
     return result
 }
 
-class StatementData(val customer: String, val performances: List<Performance>)
+class StatementData(
+    _customer: String,
+    _performances: List<Performance>,
+    plays: Map<kotlin.String, json.Play>
+) {
+    val customer: String
+    val performances: List<StatementPerformance>
+    private val playFor: (Performance) -> Play = { plays[it.playId] ?: error("playId not found") }
+
+    init {
+        customer = _customer
+        performances = _performances.map {
+            StatementPerformance(playFor(it), it.audience)
+        }
+    }
+
+    class StatementPerformance(
+        val play: Play,
+        val audience: Int
+    )
+}
