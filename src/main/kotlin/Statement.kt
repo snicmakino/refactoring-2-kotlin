@@ -14,17 +14,10 @@ fun renderPlainText(data: StatementData): String {
     val usd: (Int) -> String = { "\$%.2f".format(it.toFloat()) }
 
 
-    fun volumeCreditsFor(aPerformance: StatementData.StatementPerformance): Double {
-        var result = 0.0
-        result += listOf(aPerformance.audience - 30, 0).maxOrNull() ?: 0
-        if ("comedy" == aPerformance.play.type) result += floor(aPerformance.audience.toDouble()) / 5
-        return result
-    }
-
     fun totalVolumeCredits(): Double {
         var result = 0.0
         for (perf in data.performances) {
-            result += volumeCreditsFor(perf)
+            result += perf.volumeCredits
         }
         return result
     }
@@ -79,16 +72,28 @@ class StatementData(
         }
         result
     }
+    private val volumeCreditsFor: (Performance, Play) -> Double = { aPerformance, play ->
+        var result = 0.0
+        result += listOf(aPerformance.audience - 30, 0).maxOrNull() ?: 0
+        if ("comedy" == play.type) result += floor(aPerformance.audience.toDouble()) / 5
+        result
+    }
 
     init {
         performances = _performances.map {
-            StatementPerformance(playFor(it), it.audience, amountFor(it, playFor(it)))
+            StatementPerformance(
+                playFor(it),
+                it.audience,
+                amountFor(it, playFor(it)),
+                volumeCreditsFor(it, playFor(it))
+            )
         }
     }
 
     class StatementPerformance(
         val play: Play,
         val audience: Int,
-        val amount: Int
+        val amount: Int,
+        val volumeCredits: Double
     )
 }
