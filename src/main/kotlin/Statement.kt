@@ -13,11 +13,29 @@ fun renderPlainText(data: StatementData): String {
 
     for (perf in data.performances) {
         // 注文の内訳を出力
-        result += " ${perf.play.name}: ${usd(perf.amount / 100)} (${perf.audience} seats)\n"
+        result += " ${perf.play.name}: ${usd(perf.amount)} (${perf.audience} seats)\n"
     }
 
-    result += "Amount owed is ${usd(data.totalAmount / 100)}\n"
-    result += "You earned %.0f credits\n".format(data.totalVolumeCredits)
+    result += "Amount owed is ${usd(data.totalAmount)}\n"
+    result += "You earned ${"%.0f".format(data.totalVolumeCredits)} credits\n"
+    return result
+}
+
+fun htmlStatement(invoice: Invoice, plays: Map<String, Play>): String {
+    return renderHtml(StatementData(invoice.customer, invoice.performances, plays))
+}
+
+fun renderHtml(data: StatementData): String {
+    var result = "<h1>Statement for ${data.customer}</h1>\n"
+    result += "<table>\n"
+    result += "<tr><th>play</th><th>seats</th><th>cost</th></tr>"
+    for (perf in data.performances) {
+        result += "  <tr><td>${perf.play.name}</td><td>${perf.audience}</td>"
+        result += "<td>${usd(perf.amount)}</td></tr>\n"
+    }
+    result += "</table>\n"
+    result += "<p>Amount owed is <em>${usd(data.totalAmount)}</em></p>\n"
+    result += "<p>You earned <em>${"%.0f".format(data.totalVolumeCredits)}</em> credits</p>\n"
     return result
 }
 
@@ -36,8 +54,11 @@ class StatementData(
     val totalVolumeCredits: Double
 
     init {
-        val playFor: (Performance) -> Play = { plays[it.playId] ?: error("playId not found") }
-        val amountFor: (Performance, Play) -> Int = { aPerformance, play ->
+        fun playFor(it: Performance): Play {
+            return plays[it.playId] ?: error("playId not found")
+        }
+
+        fun amountFor(aPerformance: Performance, play: Play): Int {
             var result: Int
             when (play.type) {
                 "tragedy" -> {
@@ -57,19 +78,22 @@ class StatementData(
                     throw Exception("unknown type: %s".format(play.type))
                 }
             }
-            result
+            return result / 100
         }
-        val volumeCreditsFor: (Performance, Play) -> Double = { aPerformance, play ->
+
+        fun volumeCreditsFor(aPerformance: Performance, play: Play): Double {
             var result = 0.0
             result += listOf(aPerformance.audience - 30, 0).maxOrNull() ?: 0
             if ("comedy" == play.type) result += floor(aPerformance.audience.toDouble()) / 5
-            result
+            return result
         }
-        val _totalAmount: (List<StatementPerformance>) -> Int = { performances ->
-            performances.fold(0) { acc, performance -> acc + performance.amount }
+
+        fun totalAmount(performances: List<StatementPerformance>): Int {
+            return performances.fold(0) { acc, performance -> acc + performance.amount }
         }
-        val _totalVolumeCredits: (List<StatementPerformance>) -> Double = { performances ->
-            performances.fold(0.0) { acc, performance -> acc + performance.volumeCredits }
+
+        fun totalVolumeCredits(performances: List<StatementPerformance>): Double {
+            return performances.fold(0.0) { acc, performance -> acc + performance.volumeCredits }
         }
 
         performances = _performances.map {
@@ -80,8 +104,8 @@ class StatementData(
                 volumeCreditsFor(it, playFor(it))
             )
         }
-        totalAmount = _totalAmount(performances)
-        totalVolumeCredits = _totalVolumeCredits(performances)
+        totalAmount = totalAmount(performances)
+        totalVolumeCredits = totalVolumeCredits(performances)
     }
 
     class StatementPerformance(
