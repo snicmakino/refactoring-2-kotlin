@@ -22,7 +22,7 @@ class StatementTest : StringSpec() {
     )
 
     init {
-        "正常ケース" {
+        "PlainText出力正常ケース" {
             statement(invoice, plays) shouldBe "Statement for BigCo\n" +
                     " Hamlet: \$650.00 (55 seats)\n" +
                     " As You Like It: \$580.00 (35 seats)\n" +

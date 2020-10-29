@@ -9,17 +9,20 @@ fun statement(invoice: Invoice, plays: Map<String, Play>): String {
 }
 
 fun renderPlainText(data: StatementData): String {
-    var result = "Statement for %s\n".format(data.customer)
-    val usd: (Int) -> String = { "\$%.2f".format(it.toFloat()) }
+    var result = "Statement for ${data.customer}\n"
 
     for (perf in data.performances) {
         // 注文の内訳を出力
-        result += " %s: %s (%s seats)\n".format(perf.play.name, usd(perf.amount / 100), perf.audience)
+        result += " ${perf.play.name}: ${usd(perf.amount / 100)} (${perf.audience} seats)\n"
     }
 
-    result += "Amount owed is %s\n".format(usd(data.totalAmount / 100))
+    result += "Amount owed is ${usd(data.totalAmount / 100)}\n"
     result += "You earned %.0f credits\n".format(data.totalVolumeCredits)
     return result
+}
+
+fun usd(amount: Int): String {
+    return "\$%.2f".format(amount.toFloat())
 }
 
 class StatementData(
