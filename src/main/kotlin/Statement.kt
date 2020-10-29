@@ -13,28 +13,6 @@ fun renderPlainText(data: StatementData): String {
     var result = "Statement for %s\n".format(data.customer)
     val usd: (Int) -> String = { "\$%.2f".format(it.toFloat()) }
 
-    fun amountFor(aPerformance: StatementData.StatementPerformance): Int {
-        var result: Int
-        when (aPerformance.play.type) {
-            "tragedy" -> {
-                result = 40000
-                if (aPerformance.audience > 30) {
-                    result += 1000 * (aPerformance.audience - 30)
-                }
-            }
-            "comedy" -> {
-                result = 30000
-                if (aPerformance.audience > 20) {
-                    result += 10000 + 500 * (aPerformance.audience - 20)
-                }
-                result += 300 * aPerformance.audience
-            }
-            else -> {
-                throw Exception("unknown type: %s".format(aPerformance.play.type))
-            }
-        }
-        return result
-    }
 
     fun volumeCreditsFor(aPerformance: StatementData.StatementPerformance): Double {
         var result = 0.0
@@ -55,14 +33,14 @@ fun renderPlainText(data: StatementData): String {
         var result = 0
         for (perf in data.performances) {
             // 注文の内訳を出力
-            result += amountFor(perf)
+            result += perf.amount
         }
         return result
     }
 
     for (perf in data.performances) {
         // 注文の内訳を出力
-        result += " %s: %s (%s seats)\n".format(perf.play.name, usd(amountFor(perf) / 100), perf.audience)
+        result += " %s: %s (%s seats)\n".format(perf.play.name, usd(perf.amount / 100), perf.audience)
     }
 
     result += "Amount owed is %s\n".format(usd(totalAmount() / 100))
@@ -75,19 +53,42 @@ class StatementData(
     _performances: List<Performance>,
     plays: Map<kotlin.String, json.Play>
 ) {
-    val customer: String
+    val customer: String = _customer
     val performances: List<StatementPerformance>
+
     private val playFor: (Performance) -> Play = { plays[it.playId] ?: error("playId not found") }
+    private val amountFor: (Performance, Play) -> Int = { aPerformance, play ->
+        var result: Int
+        when (play.type) {
+            "tragedy" -> {
+                result = 40000
+                if (aPerformance.audience > 30) {
+                    result += 1000 * (aPerformance.audience - 30)
+                }
+            }
+            "comedy" -> {
+                result = 30000
+                if (aPerformance.audience > 20) {
+                    result += 10000 + 500 * (aPerformance.audience - 20)
+                }
+                result += 300 * aPerformance.audience
+            }
+            else -> {
+                throw Exception("unknown type: %s".format(play.type))
+            }
+        }
+        result
+    }
 
     init {
-        customer = _customer
         performances = _performances.map {
-            StatementPerformance(playFor(it), it.audience)
+            StatementPerformance(playFor(it), it.audience, amountFor(it, playFor(it)))
         }
     }
 
     class StatementPerformance(
         val play: Play,
-        val audience: Int
+        val audience: Int,
+        val amount: Int
     )
 }
