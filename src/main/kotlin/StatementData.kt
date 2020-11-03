@@ -1,6 +1,5 @@
 import json.Performance
 import json.Play
-import kotlin.math.floor
 
 class StatementData(
     _customer: String,
@@ -26,7 +25,7 @@ class StatementData(
         }
 
         performances = _performances.map {
-            val calculator = PerformanceCalculator(it, playFor(it))
+            val calculator = createPerformanceCalculator(it, playFor(it))
             PerformanceData(
                 calculator.play,
                 it.audience,
@@ -45,3 +44,12 @@ class PerformanceData(
     val amount: Int,
     val volumeCredits: Double
 )
+
+
+fun createPerformanceCalculator(aPerformance: Performance, aPlay: Play): PerformanceCalculator {
+    return when (aPlay.type) {
+        "tragedy" -> TragedyCalculator(aPerformance, aPlay)
+        "comedy" -> ComedyCalculator(aPerformance, aPlay)
+        else -> throw Exception("未知の演劇の種類：${aPlay.type}")
+    }
+}
