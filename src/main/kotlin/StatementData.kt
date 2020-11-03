@@ -56,8 +56,9 @@ class StatementData(
         }
 
         performances = _performances.map {
+            val calculator = PerformanceCalculator(it, playFor(it))
             PerformanceData(
-                playFor(it),
+                calculator.play,
                 it.audience,
                 amountFor(it, playFor(it)),
                 volumeCreditsFor(it, playFor(it))
