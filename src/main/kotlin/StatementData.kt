@@ -17,13 +17,6 @@ class StatementData(
             return plays[it.playId] ?: error("playId not found")
         }
 
-        fun volumeCreditsFor(aPerformance: Performance, play: Play): Double {
-            var result = 0.0
-            result += listOf(aPerformance.audience - 30, 0).maxOrNull() ?: 0
-            if ("comedy" == play.type) result += floor(aPerformance.audience.toDouble()) / 5
-            return result
-        }
-
         fun totalAmount(performances: List<PerformanceData>): Int {
             return performances.fold(0) { acc, performance -> acc + performance.amount }
         }
@@ -38,7 +31,7 @@ class StatementData(
                 calculator.play,
                 it.audience,
                 calculator.amount(),
-                volumeCreditsFor(it, playFor(it))
+                calculator.volumeCredits(),
             )
         }
         totalAmount = totalAmount(performances)

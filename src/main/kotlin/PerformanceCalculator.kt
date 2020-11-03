@@ -1,5 +1,6 @@
 import json.Performance
 import json.Play
+import kotlin.math.floor
 
 class PerformanceCalculator(val aPerformance: Performance, val play: Play) {
 
@@ -24,5 +25,12 @@ class PerformanceCalculator(val aPerformance: Performance, val play: Play) {
             }
         }
         return result / 100
+    }
+
+    fun volumeCredits(): Double {
+        var result = 0.0
+        result += listOf(aPerformance.audience - 30, 0).maxOrNull() ?: 0
+        if ("comedy" == play.type) result += floor(aPerformance.audience.toDouble()) / 5
+        return result
     }
 }
